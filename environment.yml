@@ -1,0 +1,29 @@
+name: blt-proc
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - ipympl
+  - ipdb
+  - black
+  - ipykernel
+  - ipython
+  - jupyter
+  - jupyter_nbextensions_configurator
+  - jupyter_contrib_nbextensions
+  - matplotlib
+  - numpy
+  - pandas
+  - pytest
+  - scipy
+  - xarray
+  - netcdf4
+  - cftime
+  - pip
+  - pip:
+    - jupytext
+    - pyrsktools
+    - watchmagic
+    - "-e /Users/gunnar/Projects/python/gvpy"
+    - "-e /Users/gunnar/Projects/python/rbrmoored"
+    - "-e /Users/gunnar/Projects/python/sbemoored"

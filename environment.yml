@@ -25,5 +25,6 @@ dependencies:
     - pyrsktools
     - watchmagic
     - "-e /Users/gunnar/Projects/python/gvpy"
+    - "-e /Users/gunnar/Projects/python/ctdproc"
     - "-e /Users/gunnar/Projects/python/rbrmoored"
     - "-e /Users/gunnar/Projects/python/sbemoored"

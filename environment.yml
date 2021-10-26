@@ -19,6 +19,8 @@ dependencies:
   - xarray
   - netcdf4
   - cftime
+  - cartopy
+  - shapely
   - pip
   - pip:
     - jupytext

@@ -62,9 +62,15 @@ Some of the processing code lives in a separate repository at https://github.com
 ### RBR Solo
 Some of the processing code lives in a separate repository at https://github.com/gunnarvoet/rbrmoored.
 
-
 #### Sensor calibration
 All RBR Solo were attached to the CTD rosette prior to the BLT1 deployment.
 Calibration casts were done on 2021-06-22 and 2021-06-23, corresponding to CTD casts 002 and 003. Cast 003 was deeper than 1700m and the plastic (WHOI) RBRs were taken off for this cast.
 
-Cast 003 has a very stable period at the bottom that allows for calibrating the deep units. Offsets determined here are within a few millidegrees for most sensors. Only 3 deep Solos differ by more than 5 millidegrees: 72147 (6mdeg), 72216 (-12mdeg), 72219 (-6mdeg). However, when applying this constant calibration offset, 
+Cast 003 has a very stable period at the bottom that allows for calibrating the deep units. Offsets determined here are within a few millidegrees for most sensors. Only 3 deep Solos differ by more than 5 millidegrees: 72147 (6mdeg), 72216 (-12mdeg), 72219 (-6mdeg).
+
+We need to have more than one calibration point and fit a curve to it as there is a temperature/voltage dependence. Cast 003 has stops at 1500m and 300m in addition to the bottom stop.
+
+In addition to the CTD calibration casts, thermistors are also calibrated in-situ by comparison with mean temperature stratification calculated over two-day windows. An inertial period is about 0.6 days at the mooring sites, we are thus averaging over enough time to expect stable stratification.
+
+#### Sort by mooring and depth
+This is now happening in the blt analysis code to have better access to libraries there.

@@ -21,6 +21,9 @@ dependencies:
   - cftime
   - cartopy
   - shapely
+  - python-box
+  - cmocean
+  - tqdm
   - pip
   - pip:
     - jupytext
@@ -30,3 +33,4 @@ dependencies:
     - "-e /Users/gunnar/Projects/python/ctdproc"
     - "-e /Users/gunnar/Projects/python/rbrmoored"
     - "-e /Users/gunnar/Projects/python/sbemoored"
+    - "-e /Users/gunnar/Projects/python/underway"

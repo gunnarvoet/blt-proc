@@ -31,10 +31,12 @@ import gvpy as gv
 # %autoreload 2
 
 # %% [markdown]
-# # BLT1 Trilateration
+# # BLT Trilateration
 
 # %% [markdown]
 # Moved all trilateration functions to `gvpy.trilaterate`.
+#
+# Running trilateration for all BLT moorings here to produce netcdf and ascii file with locations and depths.
 #
 # Still need to
 # - include sADCP data in the analysis to see if we can do a better job with positioning in the future
@@ -77,7 +79,7 @@ topo_extent = (
 # %% [markdown] heading_collapsed=true
 # ### BLT1
 
-# %% [markdown] hidden=true heading_collapsed=true
+# %% [markdown] heading_collapsed=true hidden=true
 # #### MP1
 
 # %% hidden=true
@@ -104,7 +106,7 @@ mp1.trilaterate(i=0)
 # %% hidden=true
 mp1.plot_results(pmlat=0.005);
 
-# %% [markdown] hidden=true heading_collapsed=true
+# %% [markdown] heading_collapsed=true hidden=true
 # #### MP2
 
 # %% [markdown] hidden=true
@@ -142,7 +144,7 @@ mp2.result
 # %% hidden=true
 mp2.plot_results(pmlat=0.01);
 
-# %% [markdown] hidden=true heading_collapsed=true
+# %% [markdown] heading_collapsed=true hidden=true
 # #### MAVS1
 
 # %% hidden=true
@@ -169,7 +171,7 @@ mavs1.trilaterate(i=0)
 # %% hidden=true
 mavs1.plot_results(pmlat=0.01);
 
-# %% [markdown] hidden=true heading_collapsed=true
+# %% [markdown] heading_collapsed=true hidden=true
 # #### MAVS2
 
 # %% hidden=true
@@ -199,7 +201,7 @@ mavs2.plot_results();
 # %% hidden=true
 mavs2.plot_locations();
 
-# %% [markdown] hidden=true heading_collapsed=true
+# %% [markdown] heading_collapsed=true hidden=true
 # #### TCHAIN
 
 # %% hidden=true
@@ -229,7 +231,7 @@ tchain.plot_results(pmlat=0.005);
 # %% [markdown] heading_collapsed=true
 # ### BLT2
 
-# %% [markdown] hidden=true heading_collapsed=true
+# %% [markdown] heading_collapsed=true hidden=true
 # #### MP3
 
 # %% [markdown] hidden=true
@@ -298,7 +300,7 @@ ax = mp3.plot_results(pmlat=0.005)
 # ax.plot(mp3.drop_approach.lon, mp3.drop_approach.lat, transform=ccrs.PlateCarree(), color='green')
 # ax.plot(mp3.drop_pos.lon, mp3.drop_pos.lat, transform=ccrs.PlateCarree(), marker='d', color='orange')
 
-# %% [markdown] hidden=true heading_collapsed=true
+# %% [markdown] heading_collapsed=true hidden=true
 # #### MAVS3
 
 # %% [markdown] hidden=true
@@ -364,7 +366,7 @@ mavs3.trilaterate(0)
 # %% hidden=true
 ax = mavs3.plot_results(pmlat=0.002);
 
-# %% [markdown] hidden=true heading_collapsed=true
+# %% [markdown] heading_collapsed=true hidden=true
 # #### MAVS4
 
 # %% [markdown] hidden=true

@@ -2,35 +2,26 @@ name: blt-proc
 channels:
   - conda-forge
 dependencies:
-  - python=3.8
-  - ipympl
-  - ipdb
-  - black
-  - ipykernel
-  - ipython
-  - jupyter
-  - jupyter_nbextensions_configurator
-  - jupyter_contrib_nbextensions
-  - matplotlib
-  - numpy
-  - pandas
-  - pytest
-  - scipy
-  - xarray
-  - netcdf4
-  - cftime
-  - cartopy
-  - shapely
-  - python-box
-  - cmocean
-  - tqdm
+  - cmocean=2.0
+  - matplotlib=3.5.1
+  - netcdf4=1.5.8
+  - numpy=1.22.0
+  - pandas=1.3.5
+  - python=3.10.1
+  - gsw==3.4.0
+  - scipy=1.7.3
+  - tqdm=4.62.3
+  - xarray=0.20.2
+  - cftime=1.5.1.1
   - pip
   - pip:
-    - jupytext
-    - pyrsktools
-    - watchmagic
+    - jupytext==1.13.5
+    - pyrsktools==0.1.8
+    - watchmagic==0.1.1
     - "-e /Users/gunnar/Projects/python/gvpy"
     - "-e /Users/gunnar/Projects/python/ctdproc"
     - "-e /Users/gunnar/Projects/python/rbrmoored"
     - "-e /Users/gunnar/Projects/python/sbemoored"
     - "-e /Users/gunnar/Projects/python/underway"
+    - "-e ."
+    # - "-e git+https://github.com/gunnarvoet/gvpy.git@master#egg=gvpy"

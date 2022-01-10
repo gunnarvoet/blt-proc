@@ -1,2 +1,8 @@
 *.ipynb
 *.nc
+rbr/blt1/blt1_rbrsolo_proc_info.csv
+rbr/blt1/blt1_rbrsolo_proc_info_issues.csv
+rbr/blt1/blt1_rbrsolo_proc_info_issues.html
+rbr/blt1/cal_offsets/
+rbr/blt1/fig/
+

@@ -179,3 +179,91 @@ def rbr_ctd_cal_plot_all_sensor_offsets(c, selected_points):
             ax.set(ylim=(-20, 20))
         gv.plot.png(fname=f'{sn:06}_cal_offsets', figdir='cal_offsets', verbose=False)
         ax.cla()
+
+
+def rbr_find_last_time_stamp(thermistor):
+    return thermistor.time.isel(time=-1).data
+
+
+def rbr_load_proc_level0(sn, l0dir):
+    files = list(l0dir.glob(f'{sn:06}*.nc'))
+    if len(files) == 1:
+        return xr.open_dataarray(files[0])
+    elif len(files) == 0:
+        return None
+    else:
+        raise OSError(f'more than one file for SN{sn} in {data_raw}')
+
+
+def rbr_find_gaps(thermistor):
+    td = thermistor.time.diff(dim="time")
+    dt = np.timedelta64(int(thermistor.attrs["sampling period in s"] * 1000), "ms")
+    tdi = td.where(
+        (td > dt + np.timedelta64(500, "ms")) | (td < dt - np.timedelta64(500, "ms")),
+        drop=True,
+    )
+    return tdi
+
+
+def rbr_find_first_long_gap(tdi):
+    ti = [np.timedelta64(t, 'h') for t in tdi.data] > np.timedelta64(1, 'h')
+    t = tdi.where(ti)
+    t0 = t.isel(time=0)
+    t0['time'] = (t0.time-t0).data
+    return t0
+
+
+def rbr_apply_ctd_offset(thermistor, sn, ctdcal):
+    if sn in ctdcal.sn:
+        cal = ctdcal.sel(sn=sn).data
+        return thermistor + cal
+    else:
+        print(f'no cal for {sn}')
+        return thermistor
+
+
+def rbr_blt1_load_mooring_sensor_info(thermistor_info_path):
+    mavs1_info_csv = thermistor_info_path.joinpath('blt_mavs1_thermistors_only.csv')
+    mavs2_info_csv = thermistor_info_path.joinpath('blt_mavs2_thermistors_only.csv')
+
+    mavs1_info = pd.read_csv(mavs1_info_csv, sep=",", header=0, index_col="SN")
+    mavs2_info = pd.read_csv(mavs2_info_csv, sep=",", header=0, index_col="SN")
+
+    mavs1_rbr = mavs1_info.query('Type=="Solo" | Type=="Solo Ti" | Type=="MAVS Solo"')
+    mavs2_rbr = mavs2_info.query('Type=="Solo" | Type=="Solo Ti" | Type=="MAVS Solo"')
+
+    return mavs1_rbr, mavs2_rbr
+
+
+def rbr_cut_and_cal(sn, l0dir, l1dir, thermistor_info_path, ctdcal):
+    mavs1_rbr, mavs2_rbr = rbr_blt1_load_mooring_sensor_info(thermistor_info_path)
+    # get deployment times
+    if sn in mavs1_rbr.index:
+        cut_beg = np.datetime64('2021-07-06 14:30:00')
+        cut_end = np.datetime64('2021-10-05 09:30:00')
+    elif sn in mavs2_rbr.index:
+        cut_beg = np.datetime64('2021-07-07 13:50:00')
+        cut_end = np.datetime64('2021-10-04 13:00:00')
+    else:
+        print(f'cannot find SN{sn} in mooring info structure')
+    print(f'loading SN{sn}')
+    tmp = rbr_load_proc_level0(sn, l0dir)
+    last_time = rbr_find_last_time_stamp(tmp)
+    t1 = cut_end
+    if last_time < cut_end:
+        t1 = last_time
+    tdi = rbr_find_gaps(tmp)
+    if len(tdi) > 0:
+        t = rbr_find_first_long_gap(tdi)
+        if ~np.isnat(t):
+            if t.time.data < t1:
+                t1 = t.time.data
+
+    tmpcut = tmp.where((tmp.time > cut_beg) & (tmp.time < t1), drop=True)
+
+    tmpcal = rbr_apply_ctd_offset(thermistor=tmpcut, sn=sn, ctdcal=ctdcal)
+    print('saving')
+    savename = f'blt1_rbr_{sn:06}.nc'
+    tmpcal.to_netcdf(l1dir.joinpath(savename), mode='w')
+
+    return tmpcal

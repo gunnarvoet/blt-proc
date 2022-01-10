@@ -53,9 +53,6 @@ bp.thermistors.test()
 # - Extract time period of CTD calibration cast and save thermistor time series for these periods to new files.
 # - Determine calibration offsets from CTD casts. Ideally these would be calibration curves, but we do not really have enough calibration data for curves and need to revert to constant offsets.
 # - Calibration offsets for the RBRs (excluding the sensors integrated directly into the MAVS packages) are saved to `blt1_rbr_ctd_cal_offsets.nc`.
-#
-# The following was supposed to happen here but currently lives in the initial processing notebook. Should probably move this here or even better to its own notebook as it depends on both the initial processing and this notebook. Could name that notebook something like level 1.
-# - Cut time series for time at depth and save to new file. We may want to hold off with this and do it when we apply the CTD calibration.
 
 # %% [markdown] heading_collapsed=true
 # ### Settings

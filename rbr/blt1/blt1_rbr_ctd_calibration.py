@@ -160,7 +160,7 @@ fig, (axa, axb) = plt.subplots(nrows=1, ncols=2, figsize=(10, 4),
                        constrained_layout=True, sharey=True)
 
 c1.plot(hue='n', add_legend=False, ax=axa)
-ctd.t1.plot(ax=axa)
+ctd1.t1.plot(ax=axa)
 
 for axi, ci, ctdi in zip([axa, axb], [c1, c2], [ctd1, ctd2]):
     ctdi.t1.plot(ax=axi, color='C0')
@@ -178,7 +178,7 @@ for axi in [axa, axb]:
 
 # %% hidden=true
 fig, ax = gv.plot.quickfig()
-ctd.p.plot()
+ctd1.p.plot()
 timesel1 = [
     slice("2021-06-22 08:03:30", "2021-06-22 08:03:45"),
     slice("2021-06-22 08:04:10", "2021-06-22 08:05:00"),
@@ -187,7 +187,7 @@ timesel1 = [
     slice("2021-06-22 08:35:00", "2021-06-22 08:37:00"),
 ]
 for tsi in timesel1:
-    ctd.p.sel(time=tsi).plot(color="r")
+    ctd1.p.sel(time=tsi).plot(color="r")
 ax.set(ylabel='pressure [dbar]', xlabel='', title='BLT1 RBR CTD Calibration Cast (002, 6/22)')
 ax.invert_yaxis()
 gv.plot.concise_date(ax)
@@ -379,7 +379,7 @@ c = xr.concat([a, ab], dim='calpoint')
 c.temp.data
 
 # %% [markdown] hidden=true
-# We want to exclude the two bottom stops on cast 002 as they seem to be too messy to give us reliable results:
+# We want to exclude the two bottom stops on cast 002 as they seem to be too messy to give us reliable results. We already excluded the stop on the downcast of cast 003.
 
 # %% hidden=true
 selected_points = [0, 1, 2, 5, 6, 7]

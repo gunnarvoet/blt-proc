@@ -1,5 +1,11 @@
 #!/usr/bin/env python
-"""Module for processing moored BLT thermistors."""
+"""Module for processing moored BLT thermistors, both RBR and SBE. Code for SBE
+processing is concatenated in a class structure which seems to be the more
+organized and in the end easier way. This has not been done with the RBR
+processing code yet.
+
+GV 2022-01-24
+"""
 
 from pathlib import Path
 import os
@@ -353,7 +359,7 @@ class blt1_sbe56_proc:
     """Docstring for blt1_sbe56_proc."""
 
     def __init__(self):
-        """TODO: to be defined."""
+        """Process BLT1 SBE56 data."""
         self.proc_info = self.generate_proc_info()
         self.load_paths()
         self.create_directories()
@@ -365,9 +371,9 @@ class blt1_sbe56_proc:
         self.doc_dir = Path("/Users/gunnar/Projects/blt/proc/doc/")
         self.sbe_dir = self.mooring_dir.joinpath("MAVS/SBE56")
         self.data_raw = self.sbe_dir.joinpath("raw")
-        self.data_out = self.sbe_dir.joinpath("proc_test")
+        self.data_out = self.sbe_dir.joinpath("proc")
         self.level1_dir = self.sbe_dir.joinpath("proc_L1")
-        self.figure_out = self.sbe_dir.joinpath("fig_test")
+        self.figure_out = self.sbe_dir.joinpath("fig")
         self.figure_out_level1 = self.sbe_dir.joinpath("fig_L1")
         self.ctd_cal = Path(
             "/Users/gunnar/Projects/blt/proc/sbe56/blt1/blt1_sbe56_ctd_cal_offsets.nc"

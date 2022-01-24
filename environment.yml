@@ -1,3 +1,6 @@
+# note: I installed pycurrents and gadcp manually into this environment as
+# there are a number of steps involved. They are only needed for the ADCP
+# processing.
 name: blt-proc
 channels:
   - conda-forge

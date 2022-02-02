@@ -1,5 +1,6 @@
 *.ipynb
 *.nc
+*.egg-info
 rbr/blt1/blt1_rbrsolo_proc_info.csv
 rbr/blt1/blt1_rbrsolo_proc_info_issues.csv
 rbr/blt1/blt1_rbrsolo_proc_info_issues.html

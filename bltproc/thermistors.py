@@ -271,7 +271,7 @@ def find_first_long_gap(tdi):
 def rbr_find_first_long_gap(tdi):
     t0 = find_first_long_gap(tdi)
     t0["time"] = (t0.time - t0).data
-    return
+    return t0
 
 
 def rbr_apply_ctd_offset(thermistor, sn, ctdcal):
@@ -289,7 +289,7 @@ def rbr_blt1_load_mooring_sensor_info(thermistor_info_path):
     )
 
 
-def rbr_cut_and_cal(sn, l0dir, l1dir, thermistor_info_path, ctdcal):
+def rbr_cut_and_cal(sn, l0dir, l1dir, thermistor_info_path, ctdcal, end_manually):
     mavs1_rbr, mavs2_rbr = rbr_blt1_load_mooring_sensor_info(
         thermistor_info_path
     )
@@ -317,6 +317,9 @@ def rbr_cut_and_cal(sn, l0dir, l1dir, thermistor_info_path, ctdcal):
         if ~np.isnat(t):
             if t.time.data < t1:
                 t1 = t.time.data
+            if sn in end_manually:
+                if end_manually[sn] < t1:
+                    t1 = end_manually[sn]
 
     tmpcut = tmp.where((tmp.time > cut_beg) & (tmp.time < t1), drop=True)
 

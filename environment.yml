@@ -17,9 +17,11 @@ dependencies:
   - xarray=0.20.2
   - cftime=1.5.1.1
   - nc-time-axis=1.4.0
+  - requests=2.27.1
+  - statsmodels=0.13.1
+  - jupytext=1.13.5
   - pip
   - pip:
-    - jupytext==1.13.5
     - pyrsktools==0.1.8
     - watchmagic==0.1.1
     - "-e /Users/gunnar/Projects/python/gvpy"

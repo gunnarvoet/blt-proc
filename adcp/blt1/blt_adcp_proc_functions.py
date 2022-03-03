@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-"""BLT ADCP processing functions. Mostly convenience functions to wrap `gadcp` functionality."""
+"""BLT ADCP processing functions. Mostly convenience functions to wrap `gadcp.madcp` functionality."""
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -18,6 +18,80 @@ import gadcp
 # Set up a logger. We can add information to the madcp.proc() log file, but
 # only if adding log entries after the call to madcp.proc().
 logger = logging.getLogger(__name__)
+
+
+class ProcessBltADCP(gadcp.madcp.ProcessADCP):
+    def __init__(self, mooring, sn, dgridparams=None):
+        # First we set up some project specific stuff like paths, raw data, meta data etc.
+        (
+            self.dir_data_raw,
+            raw_files,
+            self.dir_data_out,
+            self.dir_fig_out,
+        ) = construct_adcp_paths(sn, mooring)
+        self.mooring = mooring
+        self.sn = sn
+        lon, lat = mooring_lonlat(mooring)
+        params = read_params()
+        meta_data = dict(
+            mooring=mooring, sn=sn, project=params["project"], lon=lon, lat=lat
+        )
+        time_offsets = read_time_offsets()
+        insttime = (
+            time_offsets.query(f'Mooring=="{mooring}"')
+            .loc[sn]
+            .inst.to_datetime64()
+        )
+        end_adcp = convert_time_stamp(insttime)
+        utctime = (
+            time_offsets.query(f'Mooring=="{mooring}"')
+            .loc[sn]
+            .utc.to_datetime64()
+        )
+        end_pc = convert_time_stamp(utctime)
+        driftparams = dict(end_pc=end_pc, end_adcp=end_adcp)
+        editparams, tgridparams = load_default_parameters()
+
+        # Initialize the base class with the parameters.
+        super().__init__(
+            raw_files,
+            meta_data,
+            driftparams=driftparams,
+            dgridparams=dgridparams,
+            tgridparams=tgridparams,
+            editparams=editparams,
+        )
+
+        # We can add logging information from here as well, the logger set up
+        # logger.info("running BLT processing")
+
+    def plot_raw_adcp(self, savefig=True):
+        """Plot raw ADCP time series and save figure as png. Wraps
+        `gadcp.adcp.plot_raw_adcp()`. Saves the plot to png.
+
+        Parameters
+        ----------
+        savefig : bool
+            Save figure to data directory structure.
+
+        """
+        mooring = self.meta_data["mooring"]
+        sn = self.meta_data["sn"]
+
+        gadcp.adcp.plot_raw_adcp(self.raw)
+        if savefig:
+            name_plot_raw = self.dir_fig_out.joinpath(f"{mooring}_{sn}_raw")
+            gv.plot.png(name_plot_raw)
+
+    def save_averaged_data(self):
+        # save netcdf
+        name_data_proc = self.dir_data_out.joinpath(
+            f"{self.mooring}_{self.sn}.nc"
+        )
+        logger.info(f"Saving time-averaged data to {name_data_proc}")
+        self.ds.to_netcdf(name_data_proc, mode="w")
+        self.ds.close()
+
 
 def save_params(path, project):
     """Save parameters to local yaml file for easy access via other functions.
@@ -204,24 +278,26 @@ def _print_params(pd):
             print(k, ":", v)
 
 
-def plot_raw_adcp(mooring, sn):
+def plot_raw_adcp(process_instance, savefig=True):
     """Plot raw ADCP time series and save figure as png. Wraps
     `gadcp.adcp.plot_raw_adcp()`. Saves the plot to png.
 
     Parameters
     ----------
-    mooring : str
-        Mooring ID.
-    sn : int
-        ADCP serial number.
+    process_instance : gadcp.madcp.ProcessADCP
+        Raw data contained in the instance of a ProcessADCP object.
+
     """
+    mooring = process_instance.meta_data["mooring"]
+    sn = process_instance.meta_data["sn"]
     dir_data_raw, raw_files, dir_data_out, dir_fig_out = construct_adcp_paths(
         sn, mooring
     )
-    raw_files = gadcp.io.read_raw_rdi([file.as_posix() for file in raw_files])
-    gadcp.adcp.plot_raw_adcp(raw_files)
-    name_plot_raw = dir_fig_out.joinpath(f"{mooring}_{sn}_raw")
-    gv.plot.png(name_plot_raw)
+
+    gadcp.adcp.plot_raw_adcp(process_instance.raw)
+    if savefig:
+        name_plot_raw = dir_fig_out.joinpath(f"{mooring}_{sn}_raw")
+        gv.plot.png(name_plot_raw)
 
 
 def plot_echo_stats(mooring, sn):
@@ -288,10 +364,8 @@ def process_adcp(
     dgridparams,
     editparams=None,
     ibad=None,
-    n_ensembles=None,
     pressure_scale_factor=1,
-    save_nc=True,
-    logdir='log',
+    logdir="log",
     verbose=False,
 ):
     """Process ADCP data and save to netcdf file. Mostly a wrapper function for
@@ -311,8 +385,6 @@ def process_adcp(
         Set non-default editing parameters.
     ibad : int or None, optional
         Bad beam to exclude (zero-based). Defaults to None.
-    n_ensembles : int or None, optional
-        Process only the first n_ensembles. Defaults to None (process all ensembles).
     pressure_scale_factor : float, opional
         Factor for scaling the pressure time series.
     logdir : str, optional
@@ -324,7 +396,9 @@ def process_adcp(
     dir_data_raw, raw_files, dir_data_out, dir_fig_out = construct_adcp_paths(
         sn, mooring
     )
+
     raw_files_posix = [file.as_posix() for file in raw_files]
+
     time_offsets = read_time_offsets()
     insttime = (
         time_offsets.query(f'Mooring=="{mooring}"').loc[sn].inst.to_datetime64()
@@ -334,6 +408,7 @@ def process_adcp(
         time_offsets.query(f'Mooring=="{mooring}"').loc[sn].utc.to_datetime64()
     )
     end_pc = convert_time_stamp(utctime)
+    driftparams = dict(end_pc=end_pc, end_adcp=end_adcp)
 
     lon, lat = mooring_lonlat(mooring)
 
@@ -342,46 +417,42 @@ def process_adcp(
     if editparams_in is not None:
         for k, v in editparams_in.items():
             editparams[k] = v
-    # print("processing settings\n-------------------")
-    # _print_params(editparams)
-    # _print_params(tgridparams)
-    # _print_params(dgridparams)
-    # print("-------------------")
 
-    # process data
+    # meta data
     params = read_params()
-    meta_data = dict(mooring=mooring, sn=sn, project=params["project"])
-    m, mcm, pa, data = gadcp.madcp.proc(
-        raw_files_posix,
-        lon,
-        lat,
-        editparams,
-        tgridparams,
-        dgridparams,
-        end_pc,
-        end_adcp,
-        meta_data=meta_data,
-        n_ensembles=n_ensembles,
-        ibad=ibad,
-        pressure_scale_factor=pressure_scale_factor,
-        verbose=verbose,
-        plot_pressure=False,
+    meta_data = dict(
+        mooring=mooring, sn=sn, project=params["project"], lon=lon, lat=lat
     )
 
-    # add metadata
-    data.attrs["lon"] = lon
-    data.attrs["lat"] = lat
-    # data.attrs["mooring"] = mooring
-    # data.attrs["sn"] = sn
-    # data.attrs["proc time"] = np.datetime64("now").astype("str")
+    # process data
+    a = gadcp.madcp.ProcessADCP(
+        raw_files_posix,
+        meta_data=meta_data,
+        driftparams=driftparams,
+        tgridparams=tgridparams,
+        dgridparams=dgridparams,
+        editparams=editparams,
+        ibad=ibad,
+        logdir=logdir,
+        verbose=verbose,
+        plot=False,
+        pressure_scale_factor=pressure_scale_factor,
+    )
+    return a
 
+
+def save_processed_data(
+    mooring,
+    sn,
+    data,
+):
+    dir_data_raw, raw_files, dir_data_out, dir_fig_out = construct_adcp_paths(
+        sn, mooring
+    )
     # save netcdf
-    if save_nc:
-        name_data_proc = dir_data_out.joinpath(f"{mooring}_{sn}.nc")
-        data.to_netcdf(name_data_proc, mode="w")
-        data.close()
-
-    return data
+    name_data_proc = dir_data_out.joinpath(f"{mooring}_{sn}.nc")
+    data.to_netcdf(name_data_proc, mode="w")
+    data.close()
 
 
 def load_proc_adcp(mooring, sn):
@@ -445,4 +516,5 @@ def plot_adcp(mooring, sn):
     plt.suptitle(f"{data.attrs['project']} {mooring} SN{sn}")
     name_plot = f"{mooring}_{sn}_uv"
     gv.plot.png(name_plot)
+    data.close()
     return data

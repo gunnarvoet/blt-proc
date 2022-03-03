@@ -13,10 +13,10 @@
 #     name: python3
 # ---
 
-# %% [markdown]
+# %% [markdown] heading_collapsed=true
 # #### Imports
 
-# %%
+# %% hidden=true
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -66,23 +66,14 @@ nap.save_params(path=blt_data, project=project)
 # %%
 plotraw = True
 
-# %% [markdown]
+# %% [markdown] heading_collapsed=true
 # ## Read time offsets
 
-# %% [markdown]
+# %% [markdown] hidden=true
 # There are two files with time drift information, I must have done this at sea and then on shore again. The second file does not have the instrument type info which makes it easier to read as it is the same format as the time drift file that is used for the SBE37.
 
-# %%
+# %% hidden=true
 time_offsets = nap.read_time_offsets()
-
-# %%
-time_offsets
-
-# %%
-insttime = time_offsets.loc[sn].inst
-
-# %%
-time_offsets.query('Mooring=="MP1"').loc[24839]
 
 # %% [markdown] heading_collapsed=true
 # ## MP1
@@ -92,29 +83,51 @@ sn = 24839
 mooring = 'MP1'
 
 # %% hidden=true
-if plotraw:
-    nap.plot_raw_adcp(mooring, sn)
-
-# %% hidden=true
-r = nap.plot_echo_stats(mooring, sn)
+# dgridparams = dict(dbot=2100, dtop=1300, d_interval=16)
+# now generating top and bot automatically based on median depth of ADCP
+dgridparams = dict(d_interval=16)
 
 # %% [markdown] hidden=true
-# mask bins 34 to 37
+# Generate a `ProcessBltADCP` instance that is based off the `gadcp.madcp.ProcessADCP` object.
 
 # %% hidden=true
-binmask = (r.bin > 33).data
+a = nap.ProcessBltADCP(mooring, sn, dgridparams=dgridparams)
+
+# %% [markdown] hidden=true
+# Plot beam statistics to find ADCP bins that need to be excluded.
 
 # %% hidden=true
+a.plot_echo_stats()
+
+# %% [markdown] hidden=true
+# Mask bins 34 to 37
+
+# %% hidden=true
+binmask = a.generate_binmask([34, 35, 36, 37])
 editparams = dict(maskbins=binmask)
+a.parse_editparams(editparams)
 
 # %% hidden=true
-dgridparams = dict(dbot=2100, dtop=1300, d_interval=16)
+a.editparams
+
+# %% [markdown] hidden=true
+# Burst-average.
 
 # %% hidden=true
-data = nap.process_adcp(mooring, sn, dgridparams, editparams=editparams, n_ensembles=None, save_nc=True)
+a.average_ensembles()
+
+# %% hidden=true
+a.save_averaged_data()
 
 # %% hidden=true
 data = nap.plot_adcp(mooring, sn)
+
+# %% hidden=true
+a.meta_data
+
+# %% hidden=true
+if plotraw:
+    nap.plot_raw_adcp(a, savefig=True)
 
 # %% [markdown] heading_collapsed=true
 # ## MP2
@@ -124,142 +137,193 @@ sn = 24839
 mooring = 'MP2'
 
 # %% hidden=true
-if plotraw:
-    nap.plot_raw_adcp(mooring, sn)
-
-# %% hidden=true
-r = nap.plot_echo_stats(mooring, sn)
+# dgridparams = dict(dbot=1700, dtop=1000, d_interval=16)
+# now generating top and bot automatically based on median depth of ADCP
+dgridparams = dict(d_interval=16)
 
 # %% [markdown] hidden=true
-# mask bins 34 to 37
+# Generate a `ProcessBltADCP` instance that is based off the `gadcp.madcp.ProcessADCP` object.
 
 # %% hidden=true
-binmask = (r.bin > 33).data
+a = nap.ProcessBltADCP(mooring, sn, dgridparams=dgridparams)
+
+# %% [markdown] hidden=true
+# Plot beam statistics to find ADCP bins that need to be excluded.
 
 # %% hidden=true
+a.plot_echo_stats()
+
+# %% [markdown] hidden=true
+# Mask bins 34 to 37
+
+# %% hidden=true
+binmask = a.generate_binmask([34, 35, 36, 37])
 editparams = dict(maskbins=binmask)
+a.parse_editparams(editparams)
 
 # %% hidden=true
-dgridparams = dict(dbot=1700, dtop=1000, d_interval=16)
+a.editparams
+
+# %% [markdown] hidden=true
+# Burst-average.
 
 # %% hidden=true
-data = nap.process_adcp(mooring, sn, dgridparams, editparams=editparams, n_ensembles=None, save_nc=True)
+a.average_ensembles()
+
+# %% hidden=true
+a.save_averaged_data()
 
 # %% hidden=true
 data = nap.plot_adcp(mooring, sn)
 
-# %% [markdown]
+# %% hidden=true
+a.meta_data
+
+# %% hidden=true
+if plotraw:
+    nap.plot_raw_adcp(mooring, sn)
+
+# %% hidden=true
+fig, ax = gv.plot.quickfig(w=10)
+a.ds.u.where(a.ds.pg>60).dropna(dim='z', how='all').sel(time=slice('2021-08-08', '2021-08-10')).gv.tplot(ax=ax)
+
+# %% [markdown] heading_collapsed=true
 # ## MAVS1
 
-# %%
+# %% [markdown] hidden=true
+# Changes to previously processed dataset: Removing bins 0 and 1 from the processing due to contamination. Changed depth gridding due to bin-averaging pressure first.
+
+# %% hidden=true
 sn = 24608
 mooring = 'MAVS1'
 
-# %%
-if plotraw:
-    nap.plot_raw_adcp(mooring, sn)
+# %% hidden=true
+# dgridparams = dict(dbot=1650, dtop=1300, d_interval=16)
+# now generating top and bot automatically based on median depth of ADCP
+dgridparams = dict(d_interval=16)
 
-# %%
-r = nap.plot_echo_stats(mooring, sn)
+# %% [markdown] hidden=true
+# Generate a `ProcessBltADCP` instance that is based off the `gadcp.madcp.ProcessADCP` object.
 
-# %% [markdown]
-# mask bins 16 to 18
+# %% hidden=true
+a = nap.ProcessBltADCP(mooring, sn, dgridparams=dgridparams)
 
-# %%
-binmask = (r.bin > 15).data
+# %% [markdown] hidden=true
+# Plot beam statistics to find ADCP bins that need to be excluded.
 
-# %%
-# binmask[0] = True
+# %% hidden=true
+a.plot_echo_stats()
 
-# %%
+# %% [markdown] hidden=true
+# Mask bins 0 and 1 (sound bouncing off MAVS near the ADCP?) and 16 to 18 and update the processing instance with the editing parameters. We have 25m of wire between the buoy and the end of the first bin, the instrument may affect two bins here. We should stay away a bit further the next time around, and maybe try to have the first instrument at the center of a bin and not at the transition between two bins.
+
+# %% hidden=true
+print(a.meta_data.Bin1Dist)
+
+# %% hidden=true
+binmask = a.generate_binmask([0, 1])
+binmask[16:] = True
 editparams = dict(maskbins=binmask)
+a.parse_editparams(editparams)
 
-# %%
-dgridparams = dict(dbot=1650, dtop=1300, d_interval=16)
+# %% hidden=true
+a.editparams
 
-# %%
-data = nap.process_adcp(mooring, sn, dgridparams, editparams=editparams, n_ensembles=None, save_nc=True)
+# %% [markdown] hidden=true
+# Burst-average.
 
-# %%
+# %% hidden=true
+a.average_ensembles()
+
+# %% hidden=true
+a.save_averaged_data()
+
+# %% hidden=true
 data = nap.plot_adcp(mooring, sn)
 
-# %%
-data
+# %% hidden=true
+a.meta_data
 
-# %%
-fig, ax = gv.plot.quickfig()
-data.sel(time="2021-08-01").u.where(data.z < 1400, drop=True).plot()
-(-1 * gsw.z_from_p(data.sel(time="2021-08-01").pressure, data.lat)).plot()
-ax.invert_yaxis()
+# %% hidden=true
+if plotraw:
+    nap.plot_raw_adcp(a, savefig=True)
 
-# %%
-data.u.mean(dim='time').plot(marker='o')
+# %% [markdown] hidden=true
+# We can filter data even further based on `pg` but leave this up to the data user.
 
-# %%
-d = data.sel(time='2021-08').w
+# %% hidden=true
+fig, ax = gv.plot.quickfig(w=10)
+a.ds.u.where(a.ds.pg>60).dropna(dim='z', how='all').sel(time=slice('2021-08-08', '2021-08-10')).gv.tplot(ax=ax)
+gv.plot.png('test')
 
-# %%
-fig, ax = gv.plot.quickfig(w=3, h=5)
-h = ax.violinplot(
-    d.data.transpose(),
-    positions=d.z.data,
-    vert=False,
-    widths=15,
-    showmeans=True,
-    showmedians=False,
-    points=100,
-)
-ax.invert_yaxis()
+# %% hidden=true
+fig, ax = gv.plot.quickfig(w=10)
+a.ds.pg.where(a.ds.pg>60, drop=True).dropna(dim='z', how='all').sel(time=slice('2021-08-08', '2021-08-10')).gv.tplot(ax=ax)
 
-# %% [markdown]
+# %% [markdown] heading_collapsed=true
 # ## MAVS2
 
-# %%
+# %% hidden=true
 sn = 24606
 mooring = 'MAVS2'
 
-# %%
-if plotraw:
-    nap.plot_raw_adcp(mooring, sn)
+# %% hidden=true
+# dgridparams = dict(dbot=1480, dtop=1155, d_interval=16)
+# now generating top and bot automatically based on median depth of ADCP
+dgridparams = dict(d_interval=16)
 
-# %%
-r = nap.plot_echo_stats(mooring, sn)
+# %% [markdown] hidden=true
+# Generate a `ProcessBltADCP` instance that is based off the `gadcp.madcp.ProcessADCP` object.
 
-# %% [markdown]
-# mask bin 0 and bins 16 to 18
+# %% hidden=true
+a = nap.ProcessBltADCP(mooring, sn, dgridparams=dgridparams)
 
-# %%
-binmask = (r.bin > 15).data
+# %% hidden=true
+a.dgridparams
 
-# %%
-# binmask[0] = True
+# %% hidden=true
+a.meta_data
 
-# %%
+# %% hidden=true
+a.files
+
+# %% [markdown] hidden=true
+# Plot beam statistics to find ADCP bins that need to be excluded.
+
+# %% hidden=true
+a.plot_echo_stats()
+
+# %% [markdown] hidden=true
+# Mask bins 0 and maybe 1 (sound bouncing off MAVS near the ADCP?) and 16 to 18 and update the processing instance with the editing parameters. Actually, keep bin 1 for now, looks better than on MAVS1.
+
+# %% hidden=true
+binmask = a.generate_binmask([0])
+binmask[16:] = True
 editparams = dict(maskbins=binmask)
+a.parse_editparams(editparams)
 
-# %%
-dgridparams = dict(dbot=1480, dtop=1155, d_interval=16)
+# %% hidden=true
+a.editparams
 
-# %%
-data = nap.process_adcp(mooring, sn, dgridparams, editparams=editparams, n_ensembles=None, save_nc=True)
+# %% [markdown] hidden=true
+# Burst-average.
 
-# %%
-data.close()
+# %% hidden=true
+a.average_ensembles(100, 300)
 
-# %%
+# %% hidden=true
+ax = a.ds.u.gv.tplot()
+ax = a.ds.pressure.gv.tplot(ax=ax)
+
+# %% hidden=true
+a.average_ensembles()
+
+# %% hidden=true
+a.save_averaged_data()
+
+# %% hidden=true
 data = nap.plot_adcp(mooring, sn)
 
-# %%
-fig, ax = gv.plot.quickfig()
-data.sel(time="2021-08-01").u.where(data.z < 1230, drop=True).plot()
-(-1 * gsw.z_from_p(data.sel(time="2021-08-01").pressure, data.lat)).plot()
-ax.invert_yaxis()
-
-# %%
-fig, ax = gv.plot.quickfig()
-data.sel(time="2021-08-01").u.where(data.z < 1230, drop=True).plot()
-(-1 * gsw.z_from_p(data.sel(time="2021-08-01").pressure, data.lat)).plot()
-ax.invert_yaxis()
-
-# %%
-data.u.mean(dim='time').plot(marker='o')
+# %% hidden=true
+if plotraw:
+    nap.plot_raw_adcp(a, savefig=True)

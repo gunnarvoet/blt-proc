@@ -18,31 +18,18 @@ Setting minimum velocity to 1 km/h to get rid of some of the stationary data tha
 The bulk of the trilateration processing code now lives in [gvpy](https://github.com/gunnarvoet/gvpy) under `gvpy.trilaterate`. Survey setup for MAVS2 and MP2 was such that the software does not determine the right position from the three-point solution and the average of the two-point solutions was chosen instead.
 
 ### ADCP
-Some of the processing code lives in a separate repository at https://github.com/gunnarvoet/gadcp. This interfaces heavily with the UH pycurrents module; follow the [instructions](https://currents.soest.hawaii.edu/ocn_data_analysis/installation.html) to install the software.
+Some of the processing code lives in a separate repository at https://github.com/gunnarvoet/gadcp. This interfaces heavily with the [UH pycurrents module](https://currents.soest.hawaii.edu/ocn_data_analysis/installation.html) which is included in `environment.py` and automatically installed into the conda environment.
 
-<!-- The following is a list of ADCPs and for how long they recorded data. -->
+The following is a list of ADCPs and for how long they recorded data.
      
-<!-- |  SN |Mooring|Performance| -->
-<!-- |-----|-------|-----------| -->
-<!-- | 3109|M1     |Full record| -->
-<!-- | 9408|M1     |Full record| -->
-<!-- |13481|M1     |Full record; issues with pressure time series| -->
-<!-- |14408|M1     |Few days only| -->
-<!-- |22476|M1     |Few days only| -->
-<!-- | 3110|M2     |Full record| -->
-<!-- | 8063|M2     |No data| -->
-<!-- | 8065|M2     |Few days only; no pressure| -->
-<!-- |10219|M2     |Full record| -->
-<!-- |22479|M2     |Few days only| -->
-<!-- |23615|M2     |Few days only| -->
-<!-- |  344|M3     |No data| -->
-<!-- | 8122|M3     |Few days only; no pressure| -->
-<!-- |12733|M3     |Few days only| -->
-<!-- |15339|M3     |Few days only| -->
-<!-- |15694|M3     |Full record| -->
+|  SN |Mooring|Performance|
+|-----|-------|-----------|
+|24839|MP1    |Full record|
+|24608|MAVS1  |Full record|
+|24606|MAVS2  |Full record|
+|24839|MP2    |Full record|
 
-
-**Magnetic declination** at the mooring sites is about xxx.
+**Magnetic declination** at the mooring sites is about -5 and determined running *magdec* inside *gadcp*.
 
 ### SBE37
 Some of the processing code lives in a separate repository at https://github.com/gunnarvoet/sbemoored.

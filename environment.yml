@@ -1,29 +1,28 @@
-# note: I installed pycurrents and gadcp manually into this environment as
-# there are a number of steps involved. They are only needed for the ADCP
-# processing.
 name: blt-proc
 channels:
   - conda-forge
 dependencies:
-  - cmocean=2.0
-  - matplotlib=3.5.1
-  - netcdf4=1.5.8
-  - numpy=1.22.0
-  - pandas=1.3.5
-  - python=3.10.1
-  - gsw==3.4.0
-  - scipy=1.7.3
-  - tqdm=4.62.3
-  - xarray=0.20.2
-  - cftime=1.5.1.1
-  - nc-time-axis=1.4.0
-  - requests=2.27.1
-  - statsmodels=0.13.1
-  - jupytext=1.13.5
+  - python=3.10
+  - mercurial
+  - cmocean
+  - matplotlib
+  - netcdf4
+  - numpy
+  - pandas
+  - gsw
+  - scipy
+  - tqdm
+  - xarray
+  - cftime
+  - nc-time-axis
+  - requests
+  - statsmodels
+  - jupytext
   - pip
   - pip:
-    - pyrsktools==0.1.8
-    - watchmagic==0.1.1
+    - pyrsktools
+    - hg+https://currents.soest.hawaii.edu/hgstage/pycurrents@333d57320873
+    - "-e /Users/gunnar/Projects/python/gadcp"
     - "-e /Users/gunnar/Projects/python/gvpy"
     - "-e /Users/gunnar/Projects/python/ctdproc"
     - "-e /Users/gunnar/Projects/python/rbrmoored"

@@ -84,6 +84,25 @@ class ProcessBltADCP(gadcp.madcp.ProcessADCP):
             name_plot_raw = self.dir_fig_out.joinpath(f"{mooring}_{sn}_raw")
             gv.plot.png(name_plot_raw)
 
+    def rebin_dataset(self):
+        logger.info("Re-binning to 16m vertical resolution")
+        oneDvars = [var for var in self.ds.variables if 'z' not in self.ds[var].dims and var not in self.ds.coords]
+        twoDvars = [var for var in self.ds.variables if 'z' in self.ds[var].dims]
+
+        median_depth = self.ds.xducer_depth.where(self.ds.xducer_depth>100).median(dim='time').item()
+        z_bins_min = np.round(median_depth + self.ds.Bin1Dist - self.ds.CellSize/2 - 2*self.ds.CellSize)
+        z_bins_max = self.ds.z.max().item()
+        z_bins = np.arange(z_bins_min, z_bins_max, 16)
+        z_labels = z_bins[:-1] + 8
+
+        final = self.ds.groupby_bins("z", bins=z_bins, labels=z_labels).mean(keep_attrs=True)
+        final = final.rename(z_bins='depth')
+
+        for var in oneDvars:
+            final[var] = self.ds[var]
+
+        self.ds = final
+
     def save_averaged_data(self):
         # save netcdf
         name_data_proc = self.dir_data_out.joinpath(

@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.0
+#       jupytext_version: 1.13.8
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -48,19 +48,26 @@ import gvpy as gv
 # Read met data for locations of BLT trilateration surveys.
 
 # %% hidden=true
-met = xr.open_dataset(Path('/Users/gunnar/Projects/blt/cruises/blt2/py/blt2_met.nc'))
+met2 = xr.open_dataset(Path('/Users/gunnar/Projects/blt/cruises/blt2/py/blt2_met.nc'))
+met3 = xr.open_dataset(Path('/Users/gunnar/Projects/blt/cruises/blt3/py/blt3_met.nc'))
+met = xr.concat([met2, met3], dim='time')
 
 # %% hidden=true
 nav = xr.Dataset(data_vars=dict(lon=(('time'), met.long.data), lat=(('time'), met.lat.data)), coords=dict(time=met.time.data))
 
 # %% hidden=true
+met2.close()
+met3.close()
 met.close()
 
 # %% hidden=true
 nav = nav.where(~np.isnat(nav.time), drop=True)
 
 # %% hidden=true
-nav = nav.sel(time='2021-10-22')
+navsel = nav.sel(time='2022-08-04')
+
+# %% hidden=true
+navsel.lon.plot()
 
 # %% [markdown] heading_collapsed=true
 # ### Bathymetry
@@ -429,28 +436,170 @@ mavs4.trilaterate(0)
 ax = mavs4.plot_results(pmlat=0.001)
 
 # %% [markdown] heading_collapsed=true
+# ### BLT3
+
+# %% [markdown] heading_collapsed=true hidden=true
+# #### MAVS3 prior to recovery
+
+# %% hidden=true
+trilat_mavs3a = dict()
+
+trilat_mavs3a["point1"] = dict(
+    times=["2022-08-04 12:58:30", "2022-08-04 12:58:50", "2022-08-04 12:59:02"],
+    ranges=[1579, 1580, 1581],
+)
+
+trilat_mavs3a["point2"] = dict(
+    times=[
+        "2022-08-04 13:17:25",
+        "2022-08-04 13:17:36",
+    ],
+    ranges=[1473, 1472],
+)
+
+trilat_mavs3a["point3"] = dict(
+    times=["2022-08-04 13:36:13", "2022-08-04 13:36:22", "2022-08-04 13:36:40"],
+    ranges=[1540, 1542, 1542],
+)
+
+# %% hidden=true
+plan_lon, plan_lat = -11 - 51.041 / 60, 54 + 10.968 / 60
+bottom_depth = 1433
+mavs3a = gv.trilaterate.Trilateration(
+    "MAVS3a",
+    plan_lon=plan_lon,
+    plan_lat=plan_lat,
+    bottom_depth=bottom_depth,
+    nav=nav,
+    topo=topo,
+    drop_time='2021-10-22 20:15:45',
+)
+for p, point  in trilat_mavs3a.items():
+    mavs3a.add_ranges(times=point["times"], distances=point["ranges"])
+
+# %% hidden=true
+mavs3a.trilaterate(0)
+
+# %% hidden=true
+ax = mavs3a.plot_results(pmlat=0.002);
+
+# %% hidden=true
+ax = mavs3.plot_results(pmlat=0.002);
+
+# %% [markdown] heading_collapsed=true hidden=true
+# #### MAVS4 prior to recovery
+
+# %% hidden=true
+trilat_mavs4a = dict()
+
+trilat_mavs4a["point1"] = dict(
+    times=['2022-08-04 13:02:02', '2022-08-04 13:02:32'],
+    ranges=[1553, 1553],
+)
+
+trilat_mavs4a["point2"] = dict(
+    times=['2022-08-04 13:19:37', '2022-08-04 13:19:50', '2022-08-04 13:20:03'],
+    ranges=[1477, 1473, 1478],
+)
+
+trilat_mavs4a["point3"] = dict(
+    times=['2022-08-04 13:30:41', '2022-08-04 13:30:50'],
+    ranges=[1546, 1545],
+)
+
+# %% hidden=true
+plan_lon, plan_lat = -11 - 50.591 / 60, 54 + 11.268 / 60
+bottom_depth = 1445
+mavs4a = gv.trilaterate.Trilateration(
+    "MAVS4a",
+    plan_lon=plan_lon,
+    plan_lat=plan_lat,
+    bottom_depth=bottom_depth,
+    nav=nav,
+    topo=topo,
+    drop_time="2021-10-22 15:40:00",
+)
+for p, point  in trilat_mavs4a.items():
+    mavs4a.add_ranges(times=point["times"], distances=point["ranges"])
+
+# %% hidden=true
+mavs4a.trilaterate(0)
+
+# %% hidden=true
+ax = mavs4a.plot_results(pmlat=0.001)
+
+# %% hidden=true
+ax = mavs4.plot_results(pmlat=0.001)
+
+# %% [markdown] heading_collapsed=true hidden=true
+# #### G1
+
+# %% hidden=true
+trilat_g1 = dict()
+
+trilat_g1["point1"] = dict(
+    times=["2022-08-04 19:37:40", "2022-08-04 19:38:00", "2022-08-04 19:38:15"],
+    ranges=[1363, 1365, 1365],
+)
+
+trilat_g1["point2"] = dict(
+    times=[
+        "2022-08-04 20:05:20",
+        "2022-08-04 20:05:32",
+        "2022-08-04 20:05:42",
+    ],
+    ranges=[1372, 1374, 1374],
+)
+
+trilat_g1["point3"] = dict(
+    times=["2022-08-04 20:24:35", "2022-08-04 20:24:50", "2022-08-04 20:25:00"],
+    ranges=[1352, 1352, 1351],
+)
+
+# %% hidden=true
+plan_lon, plan_lat = -11 - 49.8 / 60, 54 + 10.3 / 60
+bottom_depth = 1274
+g1 = gv.trilaterate.Trilateration(
+    "G1",
+    plan_lon=plan_lon,
+    plan_lat=plan_lat,
+    bottom_depth=bottom_depth,
+    nav=nav,
+    topo=topo,
+    drop_time='2022-08-04 18:59:25',
+)
+for p, point  in trilat_g1.items():
+    g1.add_ranges(times=point["times"], distances=point["ranges"])
+
+# %% hidden=true
+g1.trilaterate(0)
+
+# %% hidden=true
+ax = g1.plot_results(pmlat=0.002);
+
+# %% [markdown]
 # ### Gather Moorings
 
-# %% hidden=true
-blt = [mp1, mp2, mp3, mavs1, mavs2, mavs3, mavs4, tchain]
+# %%
+blt = [mp1, mp2, mp3, mavs1, mavs2, mavs3, mavs4, tchain, g1]
 
-# %% hidden=true
+# %%
 tmp = [mi.to_netcdf() for mi in blt]
 m = xr.concat(tmp, dim='mooring')
 
-# %% hidden=true
+# %%
 m.offset
 
-# %% hidden=true
+# %%
 [mi.print_result() for mi in blt];
 
-# %% [markdown] hidden=true
+# %% [markdown]
 # Save results
 
-# %% hidden=true
+# %%
 out_txt = Path('/Users/gunnar/Projects/blt/moorings/blt_mooring_locations.txt')
 
-# %% hidden=true
+# %%
 with open(out_txt, "w") as text_file:
     for g, mi in m.groupby('mooring'):
         lon, lat = gv.ocean.lonlatstr(mi.lon_actual.item(), mi.lat_actual.item(), )
@@ -459,8 +608,8 @@ with open(out_txt, "w") as text_file:
         print(f'{mi.lon_actual.item():4.3f}, {mi.lat_actual.item():4.3f}', file=text_file)
         print(f'{mi.depth_actual.item():4.0f}m\n', file=text_file)
 
-# %% hidden=true
+# %%
 m.to_netcdf('blt_trilateration_results.nc')
 
-# %% hidden=true
+# %%
 m.to_netcdf('/Users/gunnar/Projects/blt/moorings/blt_mooring_locations.nc')

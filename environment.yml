@@ -18,11 +18,14 @@ dependencies:
   - requests
   - statsmodels
   - jupytext
+  - cartopy
   - pip
   - pip:
+    - openpyxl
     - pyrsktools
     - hg+https://currents.soest.hawaii.edu/hgstage/pycurrents@333d57320873
     - "-e /Users/gunnar/Projects/python/gadcp"
+    - "-e /Users/gunnar/Projects/python/seabird"
     - "-e /Users/gunnar/Projects/python/gvpy"
     - "-e /Users/gunnar/Projects/python/ctdproc"
     - "-e /Users/gunnar/Projects/python/rbrmoored"

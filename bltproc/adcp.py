@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class ProcessBltADCP(gadcp.madcp.ProcessADCP):
-    def __init__(self, mooring, sn, dgridparams=None, **kwargs):
+    def __init__(self, mooring, sn, dgridparams=None, burst_average=True, **kwargs):
         # First we set up some project specific stuff like paths, raw data, meta data etc.
         (
             self.dir_data_raw,
@@ -50,7 +50,15 @@ class ProcessBltADCP(gadcp.madcp.ProcessADCP):
         )
         end_pc = convert_time_stamp(utctime)
         driftparams = dict(end_pc=end_pc, end_adcp=end_adcp)
+        if "tgridparams" in kwargs:
+            tgridparams_in = kwargs.pop("tgridparams")
+            t_in = True
+        else:
+            t_in = False
         editparams, tgridparams = load_default_parameters()
+        tgridparams["burst_average"] = burst_average
+        if t_in:
+            tgridparams["dt_hours"] = tgridparams_in["dt_hours"]
 
         # Initialize the base class with the parameters.
         super().__init__(
@@ -85,15 +93,21 @@ class ProcessBltADCP(gadcp.madcp.ProcessADCP):
             gv.plot.png(name_plot_raw)
 
     def rebin_dataset(self):
-        logger.info("Re-binning to 16m vertical resolution")
+        logger.info("Re-binning to original vertical resolution")
         oneDvars = [var for var in self.ds.variables if 'z' not in self.ds[var].dims and var not in self.ds.coords]
         twoDvars = [var for var in self.ds.variables if 'z' in self.ds[var].dims]
 
         median_depth = self.ds.xducer_depth.where(self.ds.xducer_depth>100).median(dim='time').item()
         z_bins_min = np.round(median_depth + self.ds.Bin1Dist - self.ds.CellSize/2 - 2*self.ds.CellSize)
         z_bins_max = self.ds.z.max().item()
-        z_bins = np.arange(z_bins_min, z_bins_max, 16)
-        z_labels = z_bins[:-1] + 8
+        z_bins = np.arange(z_bins_min, z_bins_max, self.ds.CellSize)
+        z_labels = z_bins[:-1] + self.ds.CellSize/2
+
+        if self.orientation == "up":
+            z_bins_min = self.ds.z.min().item()
+            z_bins_max = np.round(median_depth - self.ds.Bin1Dist + self.ds.CellSize/2 + 2*self.ds.CellSize)
+            z_bins = np.arange(z_bins_min, z_bins_max, self.ds.CellSize)
+            z_labels = z_bins[:-1] + self.ds.CellSize/2
 
         final = self.ds.groupby_bins("z", bins=z_bins, labels=z_labels).mean(keep_attrs=True)
         final = final.rename(z_bins='depth')

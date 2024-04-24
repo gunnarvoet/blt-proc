@@ -8,3 +8,5 @@ A [conda](https://docs.conda.io/en/latest/) environment with all packages needed
 The `Makefile` bundles a number of data synchronization and processing steps. Note that you need GNU `make` version 4.3 or higher for this to work properly. Under macOS, this can be installed via `brew install make` using [homebrew](https://brew.sh/). Type `make help` to see various options for running the Makefile.
 
 See [doc/blt_proc.pdf](https://github.com/gunnarvoet/blt-proc/blob/main/doc/blt_proc.pdf) for processing notes.
+
+Processed data in `netcdf` format are at https://doi.org/10.5061/dryad.v15dv424f.

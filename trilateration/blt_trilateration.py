@@ -435,10 +435,10 @@ mavs4.trilaterate(0)
 # %% hidden=true
 ax = mavs4.plot_results(pmlat=0.001)
 
-# %% [markdown] heading_collapsed=true
+# %% [markdown]
 # ### BLT3
 
-# %% [markdown] heading_collapsed=true hidden=true
+# %% [markdown] heading_collapsed=true
 # #### MAVS3 prior to recovery
 
 # %% hidden=true
@@ -486,7 +486,7 @@ ax = mavs3a.plot_results(pmlat=0.002);
 # %% hidden=true
 ax = mavs3.plot_results(pmlat=0.002);
 
-# %% [markdown] heading_collapsed=true hidden=true
+# %% [markdown] heading_collapsed=true
 # #### MAVS4 prior to recovery
 
 # %% hidden=true
@@ -531,7 +531,7 @@ ax = mavs4a.plot_results(pmlat=0.001)
 # %% hidden=true
 ax = mavs4.plot_results(pmlat=0.001)
 
-# %% [markdown] heading_collapsed=true hidden=true
+# %% [markdown] heading_collapsed=true
 # #### G1
 
 # %% hidden=true
@@ -578,10 +578,101 @@ g1.trilaterate(0)
 ax = g1.plot_results(pmlat=0.002);
 
 # %% [markdown]
+# #### LANDER
+
+# %% [markdown]
+# It is currently unclear to me what the range output from 6G really is. Ranges in meter are too far, half of it not enough. If the range is returned in seconds then we still end up with a range that is way too far than what we should see.
+
+# %% [markdown]
+# After going back and forth with Sonardyne I found out that the range is displayed in microseconds. The instrument turnaround time of 320 milliseconds has to be subtracted to obtain the actual travel time of the signal.
+
+# %%
+trilat_adcp = dict()
+
+
+# %%
+def sonardyne_range(time_ms):
+    offset = 320
+    time_ms = np.array(time_ms)
+    return (time_ms - offset) * 1.500 / 2 
+
+
+# %%
+offset = 320
+trilat_adcp["point1"] = dict(
+    times=[
+        "2022-08-10 10:00:00",
+        "2022-08-10 10:00:30",
+        "2022-08-10 10:00:40",
+    ],
+    ranges=sonardyne_range([2997, 2997, 2997]),
+)
+
+trilat_adcp["point2"] = dict(
+    times=[
+        "2022-08-10 10:19:52",
+        "2022-08-10 10:20:08",
+        "2022-08-10 10:20:20",
+    ],
+    ranges=sonardyne_range([2797, 2797, 2797]),
+)
+
+trilat_adcp["point3"] = dict(
+    times=[
+        "2022-08-10 10:41:20",
+        "2022-08-10 10:41:35",
+        "2022-08-10 10:41:50",
+    ],
+    ranges=sonardyne_range([2974, 2974, 2974]),
+)
+
+# %%
+plan_lon, plan_lat = -11 - 54.582 / 60, 54 + 13.326 / 60
+bottom_depth = 1855
+adcp = gv.trilaterate.Trilateration(
+    "LANDER",
+    plan_lon=plan_lon,
+    plan_lat=plan_lat,
+    bottom_depth=bottom_depth,
+    nav=nav,
+    topo=topo,
+    drop_time='2022-08-02 08:43:15',
+)
+
+# %%
+for p, point  in trilat_adcp.items():
+    adcp.add_ranges(times=point["times"], distances=point["ranges"])
+# adcp.add_ranges(pos=(lon1, lat1), distances=dist1)
+# adcp.add_ranges(pos=(lon2, lat2), distances=dist2)
+# adcp.add_ranges(pos=(lon3, lat3), distances=dist3)
+
+# %%
+adcp.trilaterate(0)
+
+# %%
+import cartopy.crs as ccrs
+
+# %%
+recovery_time = np.datetime64('2022-08-10 12:00:00')
+recovery_pos = adcp.nav.sel(time=recovery_time, method='nearest')
+
+# %%
+recovery = adcp.nav.sel(time=slice(recovery_time-np.timedelta64(2, 'h'), recovery_time))
+
+# %%
+fig, ax = gv.plot.quickfig()
+ax.plot(recovery.lon, recovery.lat, 'k')
+
+# %%
+ax = adcp.plot_results(pmlat=0.01)
+ax.plot(recovery_pos.lon, recovery_pos.lat, 'mX', transform=ccrs.PlateCarree(), )
+gv.plot.png('origin_ranging')
+
+# %% [markdown]
 # ### Gather Moorings
 
 # %%
-blt = [mp1, mp2, mp3, mavs1, mavs2, mavs3, mavs4, tchain, g1]
+blt = [mp1, mp2, mp3, mavs1, mavs2, mavs3, mavs4, tchain, g1, adcp]
 
 # %%
 tmp = [mi.to_netcdf() for mi in blt]

@@ -6,11 +6,11 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
-#     display_name: Python 3 (ipykernel)
+#     display_name: Python [conda env:blt-proc]
 #     language: python
-#     name: python3
+#     name: conda-env-blt-proc-py
 # ---
 
 # %% [markdown]
@@ -34,11 +34,23 @@ import sbemoored as sbe
 # %config InlineBackend.figure_format = 'retina'
 
 
+# %%
+import jupyter_black
+jupyter_black.load(lab=False)
+
+# %%
+gv.plot.helvetica()
+mpl.rcParams["lines.linewidth"] = 1
+
+# %%
+pd.set_option("display.max_colwidth", None)
+
 # %% [markdown]
 # # BLT1 SBE56 post-deployment CTD cast
 
 # %% [markdown]
-# Process the thermistor time series from the CTD calibration cast during BLT2 after the BLT1 mooring recoveries. The thermistor data from the CTD calibration cast are contained in small files that are separate from the BLT1 data.
+# Process the thermistor time series from the CTD calibration cast on Oct 13, 2021, during the BLT2 cruise after the BLT1 mooring recoveries.
+# Thermistor data from the CTD calibration cast are contained in small files that are separate from the BLT1 data.
 
 # %% [markdown]
 # Update: Ran the processing on all SBE56.

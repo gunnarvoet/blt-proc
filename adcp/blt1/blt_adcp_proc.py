@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.8
+#       jupytext_version: 1.14.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -204,6 +204,66 @@ fig, ax = gv.plot.quickfig(w=10)
 data.u.where(data.pg>60).dropna(dim='depth', how='all').sel(time=slice('2021-08-08', '2021-08-10')).gv.tplot(ax=ax)
 
 # %% [markdown] heading_collapsed=true
+# ## MP3
+
+# %% hidden=true
+sn = 24839
+mooring = 'MP3'
+
+# %% hidden=true
+dgridparams = dict(d_interval=4)
+
+# %% [markdown] hidden=true
+# Generate a `ProcessBltADCP` instance that is based off the `gadcp.madcp.ProcessADCP` object.
+
+# %% hidden=true
+a = bp.adcp.ProcessBltADCP(mooring, sn, dgridparams=dgridparams)
+
+# %% [markdown] hidden=true
+# Plot beam statistics to find ADCP bins that need to be excluded.
+
+# %% hidden=true
+a.plot_echo_stats()
+
+# %% [markdown] hidden=true
+# Mask bins 34 to 37
+
+# %% hidden=true
+binmask = a.generate_binmask([34, 35, 36, 37])
+editparams = dict(maskbins=binmask, min_correlation=20, pg_limit=30)
+a.parse_editparams(editparams)
+
+# %% hidden=true
+a.editparams
+
+# %% [markdown] hidden=true
+# Burst-average.
+
+# %% hidden=true
+a.burst_average_ensembles()
+
+# %% [markdown] hidden=true
+# Interpolate / bin-average back to 16m resolution.
+
+# %% hidden=true
+a.rebin_dataset()
+
+# %% hidden=true
+a.save_averaged_data()
+
+# %% hidden=true
+data = bp.adcp.plot_adcp(mooring, sn)
+data.close()
+
+# %% hidden=true
+if plotraw:
+    bp.adcp.plot_raw_adcp(a)
+
+# %% hidden=true
+fig, ax = gv.plot.quickfig(w=10)
+data.u.where(data.pg>60).dropna(dim='depth', how='all').sel(time=slice('2022-07-01', '2022-07-14')).gv.tplot(ax=ax)
+
+# %% [markdown] heading_collapsed=true
 # ## MAVS1
 
 # %% [markdown] hidden=true
@@ -330,3 +390,253 @@ data.close()
 # %% hidden=true
 if plotraw:
     bp.adcp.plot_raw_adcp(a, savefig=True)
+
+# %% [markdown] heading_collapsed=true
+# ## MAVS3
+
+# %% hidden=true
+sn = 24608
+mooring = 'MAVS3'
+
+# %% hidden=true
+dgridparams = dict(d_interval=4)
+
+# %% [markdown] hidden=true
+# Generate a `ProcessBltADCP` instance that is based off the `gadcp.madcp.ProcessADCP` object.
+
+# %% hidden=true
+a = bp.adcp.ProcessBltADCP(mooring, sn, dgridparams=dgridparams)
+
+# %% [markdown] hidden=true
+# Plot beam statistics to find ADCP bins that need to be excluded.
+
+# %% hidden=true
+a.plot_echo_stats()
+
+# %% [markdown] hidden=true
+# Mask bins 0 and 1 (sound bouncing off MAVS near the ADCP?) and 14 to 18 and update the processing instance with the editing parameters. This is two bins earlier at the bottom than what we had on MAVS1 - I wonder if this is due to beam separation and being close to the canyon walls?
+
+# %% hidden=true
+binmask = a.generate_binmask([0, 1])
+binmask[14:] = True
+editparams = dict(maskbins=binmask, min_correlation=20, pg_limit=30)
+a.parse_editparams(editparams)
+
+# %% hidden=true
+a.editparams
+
+# %% [markdown] hidden=true
+# Burst-average.
+
+# %% hidden=true
+a.burst_average_ensembles()
+
+# %% [markdown] hidden=true
+# Interpolate / bin-average back to 16m resolution.
+
+# %% hidden=true
+a.rebin_dataset()
+
+# %% hidden=true
+a.save_averaged_data()
+
+# %% hidden=true
+data = bp.adcp.plot_adcp(mooring, sn)
+data.close()
+
+# %% hidden=true
+if plotraw:
+    bp.adcp.plot_raw_adcp(a, savefig=True)
+
+# %% [markdown] hidden=true
+# We can filter data even further based on `pg` but leave this up to the data user.
+
+# %% hidden=true
+fig, ax = gv.plot.quickfig(w=10)
+a.ds.u.where(a.ds.pg>10).dropna(dim='depth', how='all').sel(time=slice('2022-06-08', '2022-06-10')).gv.tplot(ax=ax)
+
+# %% hidden=true
+fig, ax = gv.plot.quickfig(w=10)
+a.ds.pg.dropna(dim='depth', how='all').sel(time=slice('2022-06-08', '2022-06-10')).gv.tplot(ax=ax)
+
+# %% [markdown] heading_collapsed=true
+# ## MAVS4
+
+# %% hidden=true
+sn = 24606
+mooring = 'MAVS4'
+
+# %% hidden=true
+dgridparams = dict(d_interval=4)
+
+# %% [markdown] hidden=true
+# Generate a `ProcessBltADCP` instance that is based off the `gadcp.madcp.ProcessADCP` object.
+
+# %% hidden=true
+a = bp.adcp.ProcessBltADCP(mooring, sn, dgridparams=dgridparams)
+
+# %% [markdown] hidden=true
+# Plot beam statistics to find ADCP bins that need to be excluded.
+
+# %% hidden=true
+a.plot_echo_stats()
+
+# %% [markdown] hidden=true
+# Mask bins 0 and maybe 1 (sound bouncing off MAVS near the ADCP?) and 14 to 18 and update the processing instance with the editing parameters. Actually, keep bin 1 for now, looks better than on MAVS1.
+
+# %% hidden=true
+binmask = a.generate_binmask([0])
+binmask[14:] = True
+editparams = dict(maskbins=binmask, min_correlation=20, pg_limit=30)
+a.parse_editparams(editparams)
+
+# %% hidden=true
+a.editparams
+
+# %% [markdown] hidden=true
+# Burst-average.
+
+# %% hidden=true
+a.burst_average_ensembles()
+
+# %% [markdown] hidden=true
+# Interpolate / bin-average back to 16m resolution.
+
+# %% hidden=true
+a.rebin_dataset()
+
+# %% hidden=true
+a.save_averaged_data()
+
+# %% hidden=true
+data = bp.adcp.plot_adcp(mooring, sn)
+data.close()
+
+# %% hidden=true
+if plotraw:
+    bp.adcp.plot_raw_adcp(a, savefig=True)
+
+# %% [markdown]
+# ## TCHAIN
+
+# %%
+sn = 24607
+mooring = 'TCHAIN'
+
+# %%
+dgridparams = dict(d_interval=4)
+
+# %% [markdown]
+# Generate a `ProcessBltADCP` instance that is based off the `gadcp.madcp.ProcessADCP` object.
+
+# %%
+a = bp.adcp.ProcessBltADCP(mooring, sn, dgridparams=dgridparams)
+
+# %% [markdown]
+# Plot beam statistics to find ADCP bins that need to be excluded.
+
+# %%
+a.plot_echo_stats()
+
+# %%
+binmask = a.generate_binmask([0])
+binmask[8] = True
+editparams = dict(maskbins=binmask, min_correlation=20, pg_limit=30)
+a.parse_editparams(editparams)
+
+# %%
+a.editparams
+
+# %% [markdown]
+# Burst-average.
+
+# %%
+a.burst_average_ensembles()
+
+# %% [markdown]
+# Interpolate / bin-average back to original 16m resolution.
+
+# %%
+a.rebin_dataset()
+
+# %%
+a.save_averaged_data()
+
+# %%
+data = bp.adcp.plot_adcp(mooring, sn)
+data.close()
+
+# %%
+if plotraw:
+    bp.adcp.plot_raw_adcp(a, savefig=True)
+
+# %% [markdown] heading_collapsed=true
+# ## G1
+
+# %% hidden=true
+sn = 24839
+mooring = 'G1'
+
+# %% hidden=true
+dgridparams = dict(d_interval=4)
+
+# %% hidden=true
+tgridparams = dict(dt_hours = 0.1)
+
+# %% [markdown] hidden=true
+# Generate a `ProcessBltADCP` instance that is based off the `gadcp.madcp.ProcessADCP` object.
+
+# %% hidden=true
+a = bp.adcp.ProcessBltADCP(mooring, sn, dgridparams=dgridparams, burst_average=False, tgridparams=tgridparams)
+
+# %% hidden=true
+a.tgridparams
+
+# %% [markdown] hidden=true
+# Plot beam statistics to find ADCP bins that need to be excluded.
+
+# %% hidden=true
+a.plot_echo_stats()
+
+# %% [markdown] hidden=true
+# Mask last bin (64).
+
+# %% hidden=true
+binmask = a.generate_binmask([64])
+editparams = dict(maskbins=binmask, min_correlation=20, pg_limit=30)
+a.parse_editparams(editparams)
+
+# %% hidden=true
+a.orientation
+
+# %% hidden=true
+a.editparams
+
+# %% hidden=true
+a.average_ensembles()
+
+# %% hidden=true
+a.ds.u.sel(time='2022').gv.tplot(robust=True)
+
+# %% hidden=true
+a.ds.v.sel(time='2022').gv.tplot(robust=True)
+
+# %% hidden=true
+a.ds.w.sel(time='2022-08-09').gv.tplot(cmap='RdBu_r')
+
+# %% hidden=true
+a.ds.u.sel(time='2022-08-09').gv.tplot(robust=True)
+
+# %% hidden=true
+a.ds.v.sel(time='2022-08-09').gv.tplot(robust=True)
+
+# %% hidden=true
+a.save_averaged_data()
+
+# %% hidden=true
+data = bp.adcp.plot_adcp(mooring, sn)
+data.close()
+
+# %% hidden=true
+if plotraw:
+    bp.adcp.plot_raw_adcp(a)

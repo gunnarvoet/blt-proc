@@ -7,17 +7,17 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.5
+#       jupytext_version: 1.13.8
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
 
-# %% [markdown] heading_collapsed=true
+# %% [markdown]
 # ### Imports
 
-# %% hidden=true
+# %%
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
@@ -36,10 +36,10 @@ import rbrmoored as rbr
 # %autosave 300
 # %config InlineBackend.figure_format = 'retina'
 
-# %% [markdown] hidden=true
+# %% [markdown]
 # Let's see if we can import the `bltproc` package we created. It will hold some of the processing code to make the notebook less cluttered.
 
-# %% hidden=true
+# %%
 import bltproc as bp
 bp.thermistors.test()
 

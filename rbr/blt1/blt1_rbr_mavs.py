@@ -7,11 +7,11 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.3
+#       jupytext_version: 1.16.0
 #   kernelspec:
-#     display_name: Python 3 (ipykernel)
+#     display_name: python3 (blt-proc)
 #     language: python
-#     name: python3
+#     name: conda-env-blt-proc-py
 # ---
 
 # %% [markdown]
@@ -32,7 +32,6 @@ import rbrmoored as rbr
 
 # %reload_ext autoreload
 # %autoreload 2
-# %autosave 300
 # %config InlineBackend.figure_format = 'retina'
 
 # %%

@@ -6,11 +6,11 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.8
+#       jupytext_version: 1.16.0
 #   kernelspec:
-#     display_name: Python 3 (ipykernel)
+#     display_name: python3 (blt-proc)
 #     language: python
-#     name: python3
+#     name: conda-env-blt-proc-py
 # ---
 
 # %% [markdown]
@@ -31,14 +31,14 @@ import rbrmoored as rbr
 
 # %reload_ext autoreload
 # %autoreload 2
-# %autosave 300
+
 # %config InlineBackend.figure_format = 'retina'
 
 # %%
-pd.set_option('display.max_colwidth', None)
+pd.set_option("display.max_colwidth", None)
 
 # %% [markdown]
-# # BLT RBR Solo Processing
+# # BLT RBR Solo Processing MAVS 3 & 4
 #
 # - Convert .rsk files to netcdf files.
 # - Correct for clock drift.
@@ -50,7 +50,7 @@ pd.set_option('display.max_colwidth', None)
 # %%
 mooring_dir = Path("/Users/gunnar/Projects/blt/data/BLT/Moorings/BLT1/")
 
-rbr_dir = mooring_dir.joinpath("MAVS/RBRSolo")
+rbr_dir = mooring_dir.joinpath("MAVS/RBRSolo_2")
 data_raw = rbr_dir.joinpath("raw")
 data_out = rbr_dir.joinpath("proc")
 figure_out = rbr_dir.joinpath("fig")
@@ -64,14 +64,52 @@ for d in [data_out, figure_out]:
 # ## Get file name
 
 # %%
-def get_file_name(sn, data_raw, extension='rsk'):
-    files = list(data_raw.glob(f'{sn:06}*.{extension}'))
+def get_file_name(sn, data_raw, extension="rsk"):
+    files = list(data_raw.glob(f"{sn:06}*.{extension}"))
     if len(files) == 1:
         return files[0]
     elif len(files) == 0:
         return None
     else:
-        raise OSError(f'more than one file for SN{sn} in {data_raw}')
+        raise OSError(f"more than one file for SN{sn} in {data_raw}")
+
+
+# %% [markdown]
+# Read excel file from data downloading.
+
+# %%
+dtab = pd.read_excel(
+    "/Users/gunnar/Projects/blt/moorings/blt3_thermistors-DeployRecover.xlsx",
+    sheet_name="RBR",
+    header=0,
+    index_col=0,
+    nrows=155,
+)
+
+# %%
+dtab.index = dtab.index.map(int)
+
+# %%
+dtab.columns
+
+# %%
+dtab = dtab.rename(
+    columns={
+        "Pre-Deployment Calibration Bucket Dunk": "cal1",
+        "Post-Deployment Calibration Bucket Dunk": "cal2",
+        "Owner": "test",
+    }
+)
+
+# %%
+newtab = dtab[["cal1", "cal2"]].copy()
+
+# %%
+newtab.cal1 = newtab.cal1.astype(np.datetime64)
+newtab.cal2 = newtab.cal2.astype(np.datetime64)
+
+# %%
+newtab
 
 
 # %% [markdown]
@@ -81,22 +119,22 @@ def get_file_name(sn, data_raw, extension='rsk'):
 # Clock calibration
 
 # %%
-def generate_proc_info():
-    cal_file = mooring_dir.joinpath("blt1_rbrsolo_clock_calibration.txt")
+def generate_proc_info(proc_info):
+    #     cal_file = mooring_dir.joinpath("blt1_rbrsolo_clock_calibration.txt")
 
-    proc_info = pd.read_csv(
-        cal_file,
-        engine="python",
-        header=0,
-        delim_whitespace=True,
-        parse_dates={
-            "cal1": [1, 2],
-            "cal2": [3, 4],
-        },
-        index_col="SN",
-    )
-#     proc_info.cal1 = pd.to_datetime(proc_info.cal2, errors='coerce')
-    proc_info.cal2 = pd.to_datetime(proc_info.cal2, errors='coerce')
+    #     proc_info = pd.read_csv(
+    #         cal_file,
+    #         engine="python",
+    #         header=0,
+    #         delim_whitespace=True,
+    #         parse_dates={
+    #             "cal1": [1, 2],
+    #             "cal2": [3, 4],
+    #         },
+    #         index_col="SN",
+    #     )
+    # #     proc_info.cal1 = pd.to_datetime(proc_info.cal2, errors='coerce')
+    #     proc_info.cal2 = pd.to_datetime(proc_info.cal2, errors='coerce')
 
     n = proc_info.index.shape[0]
 
@@ -114,15 +152,15 @@ def generate_proc_info():
 
 # %%
 def update_proc_info():
-    for g, v in proc_info.groupby('SN'):
+    for g, v in proc_info.groupby("SN"):
         try:
-            f = get_file_name(g, data_raw=data_raw, extension='rsk')
+            f = get_file_name(g, data_raw=data_raw, extension="rsk")
             if f is not None:
                 proc_info.raw_data_exists.at[g] = True
-            f = get_file_name(g, data_raw=data_out, extension='nc')
+            f = get_file_name(g, data_raw=data_out, extension="nc")
             if f is not None:
                 proc_info.processed.at[g] = True
-            f = get_file_name(g, data_raw=figure_out, extension='png')
+            f = get_file_name(g, data_raw=figure_out, extension="png")
             if f is not None:
                 proc_info.figure_exists.at[g] = True
         except:
@@ -134,8 +172,8 @@ def update_proc_info():
 
 # %%
 def get_cal_time(sn):
-    cal1 = proc_info.loc[sn]['cal1'].to_datetime64()
-    cal2 = proc_info.loc[sn]['cal2'].to_datetime64()
+    cal1 = proc_info.loc[sn]["cal1"].to_datetime64()
+    cal2 = proc_info.loc[sn]["cal2"].to_datetime64()
     return cal1, cal2
 
 
@@ -170,18 +208,48 @@ def proc_next():
 
 
 # %%
-proc_info = generate_proc_info()
+proc_info = generate_proc_info(proc_info=newtab)
 update_proc_info()
 
 # %%
-proc_info.loc[72156]
+proc_info.loc[202304]
+
+# %% [markdown]
+# Process Kurt's standalone fast RBRs that measured on the MAVS (but were not integrated).
+
+# %%
+# done
+runproc(202304)
+
+# %%
+runproc(202305)
+
+# %%
+runproc(202306)
+
+# %%
+runproc(202307)
+
+# %%
+tmp = xr.open_dataarray(
+    "/Users/gunnar/Projects/blt/data/BLT/Moorings/BLT1/MAVS/RBRSolo_2/proc/202307_20220813_1551.nc"
+)
+
+# %%
+tmp.sel(time="2021-11").plot()
 
 # %% [markdown]
 # ## process next
 
 # %%
-proc_next()
+while True:
+    proc_next()
 
+
+# %%
+
+# %% [markdown]
+# Old Stuff here...
 
 # %% [markdown]
 # ## problems
@@ -200,15 +268,65 @@ def add_comment(sn, comment, proc_info):
 
 # %%
 sn = [72183]
-comment = 'large time offset (seems ok though)'
+comment = "large time offset (seems ok though)"
 add_comment(sn, comment, proc_info)
 
-sn = [72188, 207286, 207287, 207288, 207289, 207300, 207301, 207302, 207303, 207304, 207305, 207306, 207307, 207308, 207309, 207375, 207376, 207377, 207378, 207379, 207380, 207381, 207382, 207383, ]
-comment = 'time series terminating early'
+sn = [
+    72188,
+    207286,
+    207287,
+    207288,
+    207289,
+    207300,
+    207301,
+    207302,
+    207303,
+    207304,
+    207305,
+    207306,
+    207307,
+    207308,
+    207309,
+    207375,
+    207376,
+    207377,
+    207378,
+    207379,
+    207380,
+    207381,
+    207382,
+    207383,
+]
+comment = "time series terminating early"
 add_comment(sn, comment, proc_info)
 
-sn = [72188, 207286, 207287, 207288, 207289, 207300, 207301, 207302, 207303, 207304, 207305, 207306, 207307, 207308, 207309, 207375, 207376, 207377, 207378, 207379, 207380, 207381, 207382, 207383, ]
-comment = 'no time offset recorded'
+sn = [
+    72188,
+    207286,
+    207287,
+    207288,
+    207289,
+    207300,
+    207301,
+    207302,
+    207303,
+    207304,
+    207305,
+    207306,
+    207307,
+    207308,
+    207309,
+    207375,
+    207376,
+    207377,
+    207378,
+    207379,
+    207380,
+    207381,
+    207382,
+    207383,
+]
+comment = "no time offset recorded"
 add_comment(sn, comment, proc_info)
 
 # %%
@@ -218,22 +336,24 @@ print(proc_info.loc[72188].comment)
 # Show all instruments with problems
 
 # %%
-proc_info.where(proc_info.comment != 'ok').dropna()
+proc_info.where(proc_info.comment != "ok").dropna()
 
 # %%
-proc_info.where(proc_info.comment != 'ok').dropna().to_csv('blt1_rbrsolo_proc_info_issues.csv')
+proc_info.where(proc_info.comment != "ok").dropna().to_csv(
+    "blt1_rbrsolo_proc_info_issues.csv"
+)
 
 # %%
-proc_info.where(proc_info.comment != 'ok').dropna().index.to_numpy()
+proc_info.where(proc_info.comment != "ok").dropna().index.to_numpy()
 
 # %%
-proc_info.to_csv('blt1_rbrsolo_proc_info.csv')
+proc_info.to_csv("blt1_rbrsolo_proc_info.csv")
 
 # %% [markdown]
 # Save comments to a latex table.
 
 # %%
-proc_info.where(proc_info.comment != 'ok').dropna().to_latex(
+proc_info.where(proc_info.comment != "ok").dropna().to_latex(
     "/Users/gunnar/Projects/blt/proc/doc/rbrsolo_table.tex",
     columns=[
         "comment",

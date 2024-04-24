@@ -2,7 +2,7 @@ name: blt-proc
 channels:
   - conda-forge
 dependencies:
-  - python=3.10
+  - python=3.11
   - mercurial
   - cmocean
   - matplotlib
@@ -19,6 +19,7 @@ dependencies:
   - statsmodels
   - jupytext
   - cartopy
+  - jinja2
   - pip
   - pip:
     - openpyxl

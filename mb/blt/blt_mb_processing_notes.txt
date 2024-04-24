@@ -1,0 +1,23 @@
+The following options are used with the mgrid command:
+
+mode: Sets the gridding algorithm to be used. Default is 1 (Gaussian Weighted Mean). I am using 2 (Median Filter).
+-F2
+
+speed: Minimum speed in km/hr allowed in the input data. Set to default (0).
+-S0
+
+clip: Spline interpolation for cells without data. Set to 2. Interpolation will fill data gaps up to two times 2 grid cells in size.
+-C2
+
+Use NaN instead of 99999.9 for grid cells with no data.
+-N
+
+Grid cell spacing set to 50m. 0.0 means latitude spacing is the same as longitude after conversion to degrees if necessary. Exclamation mark tells mbgrid to use the exact grid spacing values.
+-E50/0.0/m!
+
+grid kind: netcdf
+-G3
+
+
+Consider to alse use these:
+-M    output standard deviatons and number of data points
